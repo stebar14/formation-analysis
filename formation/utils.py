@@ -23,12 +23,13 @@ def normalize_tracking_data(df):
     )
     return df
 
-def initialize_roles_with_kmeans(df, n_roles=10): # n_roles = 10 bc there are 10 outfield players in a team
-    kmeans = KMeans(n_clusters=n_roles, init='k-means++', random_state=42)
+def initialize_roles_with_kmeans(df, n_roles): 
+    kmeans = KMeans(n_clusters=len(n_roles), init='k-means++', random_state=42)
     normalized_positions = df[['xworld_norm', 'yworld_norm']].values
     df['specialized_role'] = kmeans.fit_predict(normalized_positions)
     initial_means = kmeans.cluster_centers_
     return df, initial_means
+
 
 # PDF's stands for Probability Density Functions --> zu deutsch "Wahrscheinlichkeitsdichtefunktion"
 def compute_cost_matrix(positions, role_pdfs, separation_bias=1.0): # separation_bias is a hyperparameter which influences the cost matrix, a higher value means a higher cost for players being close to each other
@@ -39,7 +40,8 @@ def compute_cost_matrix(positions, role_pdfs, separation_bias=1.0): # separation
     for i, pos in enumerate(positions):
         for j, pdf in enumerate(role_pdfs):
             # Negative log-probability for cost, with a small separation bias
-            cost_matrix[i, j] = -np.log(pdf.pdf(pos) + 1e-8) + separation_bias * np.sum(np.abs(pos - pdf.mean)) # Manhattan distance
+            cost_matrix[i, j] = -np.log(pdf.pdf(pos) + 1e-8) + separation_bias * np.sum(np.abs(pos - pdf.mean)) 
+            # Manhattan distance
             # np.linalg.norm would be the euclidean distance
             # The cost is calculated as the negative log-probability of the position given the role, + a  bias term that encourages players to be spread out
             # it pemalizes points/players with low probability of being in a certain role and add the distance between the point and the role mean
@@ -48,21 +50,23 @@ def compute_cost_matrix(positions, role_pdfs, separation_bias=1.0): # separation
 
 
 def update_roles(df, initial_means, separation_bias=6.0, cov_decay_factor=0.01):
-    unique_roles = np.unique(df['specialized_role']) # array of unique roles [0, ..., 9]
+    unique_roles = np.unique(df['specialized_role']) # array of unique roles - track_id [61, ..., 85]
+    role_to_index = {role: idx for idx, role in enumerate(unique_roles)}
+
 
     # Initialize role PDFs with a large covariance in a dictionary
     role_pdfs = {
         role: multivariate_normal( # Multivariate normal distribution
-            mean=initial_means[role], cov=np.eye(2) * 20
+            mean=initial_means[role_to_index[role]], cov=np.eye(2) * 20
         ) for role in unique_roles
     }
  
-    # colors = [plt.cm.tab10(i % 10) for i in range(len(unique_roles))]
+    colors = [plt.cm.tab10(i % 10) for i in range(len(unique_roles))]
 
     max_iterations = 20
     iteration = 0
     converged = False
-    # x = 0
+    x = 0
 
     # Iteratively assign roles and refine PDFs
     while not converged and iteration < max_iterations:
@@ -88,6 +92,7 @@ def update_roles(df, initial_means, separation_bias=6.0, cov_decay_factor=0.01):
 
         iteration += 1
         converged = np.array_equal(prev_assignments.values, df['specialized_role'].values)
+        print("Iteration:", iteration)
 
     #print("Final iteration:", iteration)
     return df, role_pdfs
