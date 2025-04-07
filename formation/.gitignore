@@ -3,3 +3,7 @@ tracks_role_1.json
 tracks_role_0.json
 tracks_role_1_mirrored.json
 tracking_data.json
+tracks_extern_data.json
+merged.json
+extern_adjusted_tracks_mirroed_2min_window.json
+extern_adjusted_tracks_mirrored_5min_window.json
