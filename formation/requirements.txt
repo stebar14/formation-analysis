@@ -8,3 +8,4 @@ ipykernel
 networkx
 xgboost
 helper
+pydantic-ai
