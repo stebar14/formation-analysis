@@ -9,3 +9,4 @@ networkx
 xgboost
 helper
 pydantic-ai
+imbalanced-learn
