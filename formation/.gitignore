@@ -9,3 +9,9 @@ merged.json
 extern_adjusted_tracks_mirroed_2min_window.json
 extern_adjusted_tracks_mirrored_5min_window.json
 adjusted_tracks_mirroed_5-10min_window_2.json
+LogisticRegression_best_model.pkl
+RandomForest_best_model.pkl
+SVC_best_model.pkl
+XGBoost_best_model.pkl
+full_tracks.json
+full_tracks_2.json
